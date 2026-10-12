@@ -1,0 +1,144 @@
+name: VIBE-ATION Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+  pull_request:
+    branches:
+      - main
+      - master
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      # Step 1: Download repository source code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Install Java for Android builds
+      - name: Set Up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      # Step 3: Install Flutter
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Step 4: Display tool versions
+      - name: Check Flutter and Dart
+        run: |
+          flutter --version
+          dart --version
+          flutter doctor -v
+
+      # Step 5: Check project structure
+      - name: Verify Flutter Project
+        run: |
+          test -f pubspec.yaml || {
+            echo "ERROR: pubspec.yaml was not found."
+            echo "Make sure the Flutter project is in the repository root."
+            exit 1
+          }
+
+          test -d android || {
+            echo "ERROR: Android project folder was not found."
+            echo "Make sure this is a Flutter project with Android support."
+            exit 1
+          }
+
+      # Step 6: Install dependencies
+      - name: Install Dependencies
+        run: flutter pub get
+
+      # Step 7: Check Dart formatting
+      - name: Check Dart Formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+        continue-on-error: true
+
+      # Step 8: Analyze Dart code
+      - name: Analyze Flutter Project
+        run: flutter analyze
+        continue-on-error: true
+
+      # Step 9: Run available Flutter tests
+      - name: Run Flutter Tests
+        run: |
+          if [ -d test ] && find test -type f -name '*_test.dart' | grep -q .; then
+            flutter test
+          else
+            echo "No Flutter test files found. Skipping tests."
+          fi
+        continue-on-error: true
+
+      # Step 10: Build release APK
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      # Step 11: Rename APK
+      - name: Prepare APK Artifact
+        run: |
+          mkdir -p build-output
+
+          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+
+          if [ ! -f "$APK_PATH" ]; then
+            echo "ERROR: Release APK was not generated."
+            exit 1
+          fi
+
+          cp "$APK_PATH" "build-output/VIBE-ATION-Android.apk"
+
+          echo "APK successfully prepared:"
+          ls -lh build-output/VIBE-ATION-Android.apk
+
+      # Step 12: Upload APK to GitHub Actions
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: vibe-ation-android-apk
+          path: build-output/VIBE-ATION-Android.apk
+          if-no-files-found: error
+          retention-days: 14
+ 
+### 3. How to download your APK
+
+1. Open your **VIBE-ATION GitHub repository**.
+2. Create `.github/workflows/android-apk.yml` and paste the code above.
+3. Commit the file to `main` or `master`.
+4. Open the repository's **Actions** tab.
+5. Select **VIBE-ATION Android APK**.
+6. Open the latest workflow run and wait for it to finish.
+7. Under **Artifacts**, tap `vibe-ation-android-apk`.
+8. Download the ZIP and extract it to find `VIBE-ATION-Android.apk`.
+
+### 4. Important notes
+
+- **Flutter project required:** Your repository must contain `pubspec.yaml`, `lib/`, and an Android project in `android/` at the repository root.
+- **APK only:** This workflow does not build a Windows EXE or package.
+- **Offline playback:** The workflow builds your app; it does not implement offline music playback. Your Flutter code and dependencies must provide that functionality.
+- **Code checks:** Formatting, analysis, and tests are configured as non-blocking steps, so the APK build can continue even if one of those checks fails. The actual APK build must succeed for the workflow to complete successfully.
+- **Release signing:** This creates a release APK, but it does not configure a private signing key for publishing to Google Play.
+
+**My recommendation:** First get a successful APK build with this workflow. Then we can add secure release signing and a separate APK build for each architecture if VIBE-ATION needs them.
