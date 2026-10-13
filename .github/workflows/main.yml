@@ -16,31 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Unpack project sources
-        run: |
-          if [ -f vibe_ation_final.zip ]; then
-            unzip -o vibe_ation_final.zip
-          fi
-
-      - name: Patch known compile errors
-        run: |
-          sed -i 's/<RegExpMatch>\[\]/<Match>[]/' lib/features/lyrics/lrc_parser.dart
-          cat > lib/audio/player_error_stream.dart <<'EOF'
-          import 'dart:async';
-
-          import 'package:just_audio/just_audio.dart';
-
-          extension PlayerErrors on AudioPlayer {
-            Stream<PlayerException> get errorStream => playbackEventStream.transform(
-              StreamTransformer<PlaybackEvent, PlayerException>.fromHandlers(
-                handleData: (event, sink) {},
-                handleError: (Object error, StackTrace st, EventSink<PlayerException> sink) {
-                  if (error is PlayerException) sink.add(error);
-                },
-              ),
-            );
-          }
-          EOF
-          sed -i "s#^import 'package:just_audio/just_audio.dart';#&\nimport '../../audio/player_error_stream.dart';#" lib/features/player/player_screen.dart
+        run: unzip -o vibe_ation_v3.zip
 
       - uses: actions/setup-java@v4
         with:
@@ -68,6 +44,8 @@ jobs:
               <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
               <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+              <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+              <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
               <application
                   android:label="VIBE-ATION"
                   android:name="${applicationName}"
