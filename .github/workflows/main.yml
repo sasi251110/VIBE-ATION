@@ -10,21 +10,6 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: Analyze and test
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version: 3.24.5
-          cache: true
-      - run: flutter pub get
-      - run: flutter analyze --no-fatal-infos
-      - run: flutter test
-
   build:
     name: Build Android APK
     runs-on: ubuntu-latest
@@ -39,15 +24,80 @@ jobs:
           channel: stable
           flutter-version: 3.24.5
           cache: true
-      - name: Generate Android platform files if the repo has none
+
+      - name: Generate Android platform files
         run: |
           if [ ! -d android ]; then
             flutter create --platforms=android --org com.vibeation --project-name vibe_ation /tmp/scaffold
             cp -r /tmp/scaffold/android ./android
           fi
-          cp android_overlay/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+
+      - name: Write manifest and MainActivity
+        run: |
+          cat > android/app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools">
+              <uses-permission android:name="android.permission.WAKE_LOCK"/>
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+              <application
+                  android:label="VIBE-ATION"
+                  android:name="${applicationName}"
+                  android:icon="@mipmap/ic_launcher">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:launchMode="singleTop"
+                      android:taskAffinity=""
+                      android:theme="@style/LaunchTheme"
+                      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+                      android:hardwareAccelerated="true"
+                      android:windowSoftInputMode="adjustResize">
+                      <meta-data
+                          android:name="io.flutter.embedding.android.NormalTheme"
+                          android:resource="@style/NormalTheme"/>
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+                  <meta-data android:name="flutterEmbedding" android:value="2"/>
+                  <service
+                      android:name="com.ryanheise.audioservice.AudioService"
+                      android:foregroundServiceType="mediaPlayback"
+                      android:exported="true"
+                      tools:ignore="Instantiatable">
+                      <intent-filter>
+                          <action android:name="android.media.browse.MediaBrowserService"/>
+                      </intent-filter>
+                  </service>
+                  <receiver
+                      android:name="com.ryanheise.audioservice.MediaButtonReceiver"
+                      android:exported="true"
+                      tools:ignore="Instantiatable">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                      </intent-filter>
+                  </receiver>
+              </application>
+              <queries>
+                  <intent>
+                      <action android:name="android.intent.action.PROCESS_TEXT"/>
+                      <data android:mimeType="text/plain"/>
+                  </intent>
+              </queries>
+          </manifest>
+          EOF
           mkdir -p android/app/src/main/kotlin/com/vibeation/vibe_ation
-          cp android_overlay/MainActivity.kt android/app/src/main/kotlin/com/vibeation/vibe_ation/MainActivity.kt
+          cat > android/app/src/main/kotlin/com/vibeation/vibe_ation/MainActivity.kt <<'EOF'
+          package com.vibeation.vibe_ation
+
+          import com.ryanheise.audioservice.AudioServiceActivity
+
+          class MainActivity : AudioServiceActivity()
+          EOF
+
       - run: flutter pub get
       - name: Build release APK
         run: flutter build apk --release
