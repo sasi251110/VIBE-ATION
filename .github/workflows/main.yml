@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Unpack project sources
-        run: unzip -o vibe_ation_v3.zip
+        run: unzip -o vibe_ation_v4.zip
 
       - uses: actions/setup-java@v4
         with:
@@ -102,6 +102,9 @@ jobs:
 
           class MainActivity : AudioServiceActivity()
           EOF
+
+      - name: Apply VIBE-ATION launcher icons
+        run: cp -r branding/res/. android/app/src/main/res/
 
       - run: flutter pub get
 
