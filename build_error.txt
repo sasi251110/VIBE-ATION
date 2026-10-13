@@ -1,0 +1,89 @@
+=== ERROR LINES ===
+27-"Install Android SDK Platform 33 (revision 3)" complete.
+28-"Install Android SDK Platform 33 (revision 3)" finished.
+29:lib/features/player/player_screen.dart:27:54: Error: The getter 'errorStream' isn't defined for the class 'AudioPlayer'.
+30- - 'AudioPlayer' is from 'package:just_audio/just_audio.dart' ('../../../.pub-cache/hosted/pub.dev/just_audio-0.9.46/lib/just_audio.dart').
+31-Try correcting the name to the name of an existing getter, or defining a getter or field named 'errorStream'.
+32-    _errSub = ref.read(playerServiceProvider).player.errorStream.listen((e) {
+33-                                                     ^^^^^^^^^^^
+34:lib/features/lyrics/lrc_parser.dart:35:19: Error: The argument type 'Match' can't be assigned to the parameter type 'RegExpMatch'.
+35- - 'Match' is from 'dart:core'.
+36- - 'RegExpMatch' is from 'dart:core'.
+37-      matches.add(m);
+38-                  ^
+39-Target kernel_snapshot_program failed: Exception
+40-
+41-
+42:FAILURE: Build failed with an exception.
+43-
+44:* What went wrong:
+45-Execution failed for task ':app:compileFlutterBuildRelease'.
+46-> Process 'command '/opt/hostedtoolcache/flutter/stable-3.24.5-x64/flutter/bin/flutter'' finished with non-zero exit value 1
+47-
+48-* Try:
+49-> Run with --stacktrace option to get the stack trace.
+50-> Run with --info or --debug option to get more log output.
+51-> Run with --scan to get full insights.
+52-> Get more help at https://help.gradle.org.
+53-
+54-BUILD FAILED in 2m 56s
+55-Running Gradle task 'assembleRelease'...                          177.2s
+56-Gradle task assembleRelease failed with exit code 1
+
+=== LAST 80 LINES ===
+
+Running Gradle task 'assembleRelease'...                        
+Warning: The plugin flutter_plugin_android_lifecycle requires Android SDK version 35 or higher.
+For more information about build configuration, see https://flutter.dev/to/review-gradle-config.
+Your project is configured to compile against Android SDK 34, but the following plugin(s) require to be compiled against a higher Android SDK version:
+- flutter_plugin_android_lifecycle compiles against Android SDK 35
+Fix this issue by compiling against the highest Android SDK version (they are backward compatible).
+Add the following to /home/runner/work/VIBE-ATION/VIBE-ATION/android/app/build.gradle:
+
+    android {
+        compileSdk = 35
+        ...
+    }
+
+Checking the license for package Android SDK Build-Tools 33.0.1 in /usr/local/lib/android/sdk/licenses
+License for package Android SDK Build-Tools 33.0.1 accepted.
+Preparing "Install Android SDK Build-Tools 33.0.1 v.33.0.1".
+"Install Android SDK Build-Tools 33.0.1 v.33.0.1" ready.
+Installing Android SDK Build-Tools 33.0.1 in /usr/local/lib/android/sdk/build-tools/33.0.1
+"Install Android SDK Build-Tools 33.0.1 v.33.0.1" complete.
+"Install Android SDK Build-Tools 33.0.1 v.33.0.1" finished.
+Checking the license for package Android SDK Platform 33 in /usr/local/lib/android/sdk/licenses
+License for package Android SDK Platform 33 accepted.
+Preparing "Install Android SDK Platform 33 (revision 3)".
+"Install Android SDK Platform 33 (revision 3)" ready.
+Installing Android SDK Platform 33 in /usr/local/lib/android/sdk/platforms/android-33
+"Install Android SDK Platform 33 (revision 3)" complete.
+"Install Android SDK Platform 33 (revision 3)" finished.
+lib/features/player/player_screen.dart:27:54: Error: The getter 'errorStream' isn't defined for the class 'AudioPlayer'.
+ - 'AudioPlayer' is from 'package:just_audio/just_audio.dart' ('../../../.pub-cache/hosted/pub.dev/just_audio-0.9.46/lib/just_audio.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'errorStream'.
+    _errSub = ref.read(playerServiceProvider).player.errorStream.listen((e) {
+                                                     ^^^^^^^^^^^
+lib/features/lyrics/lrc_parser.dart:35:19: Error: The argument type 'Match' can't be assigned to the parameter type 'RegExpMatch'.
+ - 'Match' is from 'dart:core'.
+ - 'RegExpMatch' is from 'dart:core'.
+      matches.add(m);
+                  ^
+Target kernel_snapshot_program failed: Exception
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildRelease'.
+> Process 'command '/opt/hostedtoolcache/flutter/stable-3.24.5-x64/flutter/bin/flutter'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 2m 56s
+Running Gradle task 'assembleRelease'...                          177.2s
+Gradle task assembleRelease failed with exit code 1
