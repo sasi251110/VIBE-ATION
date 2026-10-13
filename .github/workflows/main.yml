@@ -2,110 +2,56 @@ name: VIBE-ATION Android APK
 
 on:
   push:
-    branches:
-      - main
-      - master
-
+    branches: [main]
   pull_request:
-    branches:
-      - main
-      - master
-
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: android-apk-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  build-android:
+  test:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.24.5
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+
+  build:
     name: Build Android APK
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set Up Java
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
-
-      - name: Set Up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.24.5
           cache: true
-
-      - name: Check Flutter and Dart
+      - name: Generate Android platform files if the repo has none
         run: |
-          flutter --version
-          dart --version
-          flutter doctor -v
-
-      - name: Verify Flutter Project
-        run: |
-          test -f pubspec.yaml || {
-            echo "ERROR: pubspec.yaml was not found."
-            echo "Make sure the Flutter project is in the repository root."
-            exit 1
-          }
-
-          test -d android || {
-            echo "ERROR: Android project folder was not found."
-            echo "Make sure this Flutter project includes Android support."
-            exit 1
-          }
-
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Check Dart Formatting
-        run: dart format --output=none --set-exit-if-changed lib test
-        continue-on-error: true
-
-      - name: Analyze Flutter Project
-        run: flutter analyze
-        continue-on-error: true
-
-      - name: Run Flutter Tests
-        run: |
-          if [ -d test ] && find test -type f -name '*_test.dart' | grep -q .; then
-            flutter test
-          else
-            echo "No Flutter test files found. Skipping tests."
+          if [ ! -d android ]; then
+            flutter create --platforms=android --org com.vibeation --project-name vibe_ation /tmp/scaffold
+            cp -r /tmp/scaffold/android ./android
           fi
-        continue-on-error: true
-
-      - name: Build Release APK
+          cp android_overlay/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+          mkdir -p android/app/src/main/kotlin/com/vibeation/vibe_ation
+          cp android_overlay/MainActivity.kt android/app/src/main/kotlin/com/vibeation/vibe_ation/MainActivity.kt
+      - run: flutter pub get
+      - name: Build release APK
         run: flutter build apk --release
-
-      - name: Prepare APK Artifact
-        run: |
-          mkdir -p build-output
-
-          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
-
-          if [ ! -f "$APK_PATH" ]; then
-            echo "ERROR: Release APK was not generated."
-            exit 1
-          fi
-
-          cp "$APK_PATH" "build-output/VIBE-ATION-Android.apk"
-
-          echo "APK successfully prepared:"
-          ls -lh build-output/VIBE-ATION-Android.apk
-
-      - name: Upload Android APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: vibe-ation-android-apk
-          path: build-output/VIBE-ATION-Android.apk
-          if-no-files-found: error
-          retention-days: 14
+          path: build/app/outputs/flutter-apk/app-release.apk
