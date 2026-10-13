@@ -21,6 +21,27 @@ jobs:
             unzip -o vibe_ation_final.zip
           fi
 
+      - name: Patch known compile errors
+        run: |
+          sed -i 's/<RegExpMatch>\[\]/<Match>[]/' lib/features/lyrics/lrc_parser.dart
+          cat > lib/audio/player_error_stream.dart <<'EOF'
+          import 'dart:async';
+
+          import 'package:just_audio/just_audio.dart';
+
+          extension PlayerErrors on AudioPlayer {
+            Stream<PlayerException> get errorStream => playbackEventStream.transform(
+              StreamTransformer<PlaybackEvent, PlayerException>.fromHandlers(
+                handleData: (event, sink) {},
+                handleError: (Object error, StackTrace st, EventSink<PlayerException> sink) {
+                  if (error is PlayerException) sink.add(error);
+                },
+              ),
+            );
+          }
+          EOF
+          sed -i "s#^import 'package:just_audio/just_audio.dart';#&\nimport '../../audio/player_error_stream.dart';#" lib/features/player/player_screen.dart
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
