@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Unpack project sources
-        run: unzip -o vibe_ation_v4.zip
+        run: unzip -o vibe_ation_v5.zip
 
       - uses: actions/setup-java@v4
         with:
@@ -95,13 +95,7 @@ jobs:
           </manifest>
           EOF
           mkdir -p android/app/src/main/kotlin/com/vibeation/vibe_ation
-          cat > android/app/src/main/kotlin/com/vibeation/vibe_ation/MainActivity.kt <<'EOF'
-          package com.vibeation.vibe_ation
-
-          import com.ryanheise.audioservice.AudioServiceActivity
-
-          class MainActivity : AudioServiceActivity()
-          EOF
+          cp android_src/MainActivity.kt android/app/src/main/kotlin/com/vibeation/vibe_ation/MainActivity.kt
 
       - name: Apply VIBE-ATION launcher icons
         run: cp -r branding/res/. android/app/src/main/res/
